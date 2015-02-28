@@ -20,7 +20,9 @@
 if(ENABLE_GR_CTRLPORT)
 
 # Add definition so we can compile in ControlPort to the blocks.
-ADD_DEFINITIONS(-DGR_CTRLPORT)
+add_definitions(-DGR_CTRLPORT)
+
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 list(APPEND gnuradio_ctrlport_sources
   ${CMAKE_CURRENT_SOURCE_DIR}/rpcmanager.cc
@@ -29,14 +31,55 @@ list(APPEND gnuradio_ctrlport_sources
   ${CMAKE_CURRENT_SOURCE_DIR}/rpcserver_selector.cc
 )
 
+
+OPTION(ENABLE_CTRLPORT_THRIFT "Enable ControlPort Thrift support" ON)
+
+if(ENABLE_CTRLPORT_THRIFT)
+
+# Look if Thrift is installed and use it as a ControlPort backend.
+FIND_PACKAGE(Thrift)
+
+if(THRIFT_FOUND)
+
+# Indicate thrift as an installed backend in the cmake summary.
+message(STATUS "Found and enabling Thrift backend to ControlPort")
+GR_APPEND_SUBCOMPONENT("thrift")
+
+# Run Thrrift To compile C++ and Python files
+message(STATUS "Running thrift to build C++ bindings")
+EXECUTE_PROCESS(
+   COMMAND ${THRIFT_BIN} --gen cpp -out ${CMAKE_CURRENT_BINARY_DIR}/ ${CMAKE_CURRENT_SOURCE_DIR}/thrift/gnuradio.thrift
+   OUTPUT_VARIABLE THRIFT_CPP_OUTPUT
+   ERROR_VARIABLE THRIFT_CPP_ERROR
+   )
+
+
+list(APPEND gnuradio_ctrlport_sources
+  ${CMAKE_CURRENT_SOURCE_DIR}/thrift/rpcserver_thrift.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/thrift/rpcpmtconverters_thrift.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/thrift/rpcserver_booter_thrift.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/thrift/thrift_application_base.cc
+)
+
+# add files built by compiling gnuradio.thrift
+list(APPEND gnuradio_ctrlport_sources
+  ${CMAKE_CURRENT_BINARY_DIR}/gnuradio_types.cpp
+  ${CMAKE_CURRENT_BINARY_DIR}/gnuradio_constants.cpp
+  ${CMAKE_CURRENT_BINARY_DIR}/ControlPort.cpp
+)
+
+# Add  required libraries here
+list(APPEND gnuradio_runtime_libs
+  ${THRIFT_LIBRARIES}
+)
+
+endif(THRIFT_FOUND)
+endif(ENABLE_CTRLPORT_THRIFT)
+
 ########################################################################
 # Add controlport stuff to gnuradio-runtime
 ########################################################################
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
-
-# Add any required libraries here
-#list(APPEND gnuradio_runtime_libs
-#)
 
 endif(ENABLE_GR_CTRLPORT)

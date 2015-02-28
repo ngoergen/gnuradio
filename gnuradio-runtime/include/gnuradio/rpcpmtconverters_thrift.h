@@ -1,6 +1,5 @@
-/* -*- c++ -*- */
 /*
- * Copyright 2012 Free Software Foundation, Inc.
+ * Copyright 2014 Free Software Foundation, Inc.
  *
  * This file is part of GNU Radio
  *
@@ -20,15 +19,20 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef RPCSERVER_SELECTOR
-#define RPCSERVER_SELECTOR
+#ifndef RPCPMTCONVERTERS_THRIFT_H
+#define RPCPMTCONVERTERS_THRIFT_H
 
-#include <gnuradio/config.h>
+#include <pmt/pmt.h>
+#include "gnuradio_types.h"
 
-//#define GR_RPCSERVER_ENABLED
-//#define GR_RPCSERVER_ICE
-//#define GR_RPCSERVER_THRIFT
-//#define GR_RPCSERVER_ERLANG
-//#define GR_RPCSERVER_XMLRPC
+namespace GNURadio {
+  typedef boost::shared_ptr<Knob> KnobPtr;
+}
 
-#endif
+namespace rpcpmtconverter
+{
+  pmt::pmt_t to_pmt(const GNURadio::Knob& knob);
+  GNURadio::Knob from_pmt(const pmt::pmt_t& knob);
+}
+
+#endif /* RPCPMTCONVERTERS_THRIFT_H */

@@ -1,6 +1,6 @@
 /* -*- c++ -*- */
 /*
- * Copyright 2012 Free Software Foundation, Inc.
+ * Copyright 2015 Free Software Foundation, Inc.
  *
  * This file is part of GNU Radio
  *
@@ -20,15 +20,26 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef RPCSERVER_SELECTOR
-#define RPCSERVER_SELECTOR
+#include <gnuradio/thrift_application_base.h>
 
-#include <gnuradio/config.h>
+int thrift_application_common::d_reacquire_attributes(0);
+bool thrift_application_common::d_main_called(false);
+bool thrift_application_common::d_have_thrift_config(false);
+boost::shared_ptr<boost::thread> thrift_application_common::d_thread;
+std::string thrift_application_common::d_endpointStr("");
 
-//#define GR_RPCSERVER_ENABLED
-//#define GR_RPCSERVER_ICE
-//#define GR_RPCSERVER_THRIFT
-//#define GR_RPCSERVER_ERLANG
-//#define GR_RPCSERVER_XMLRPC
+boost::shared_ptr<thrift_application_common>
+thrift_application_common::Instance()
+{
+  static boost::shared_ptr<thrift_application_common>
+    instance(new thrift_application_common());
+  return instance;
+}
 
-#endif
+int
+thrift_application_common::run(int, char**)
+{
+  std::cerr << "thrift_application_common: run" << std::endl;
+  d_thriftserver->serve();
+  return EXIT_SUCCESS;
+}
