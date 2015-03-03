@@ -24,7 +24,8 @@
 #define THRIFT_APPLICATION_BASE_H
 
 #include <gnuradio/api.h>
-#include <boost/thread.hpp>
+#include <gnuradio/logger.h>
+#include <gnuradio/thread/thread.h>
 
 namespace {
   static const unsigned int THRIFTAPPLICATION_ACTIVATION_TIMEOUT_MS(600);
@@ -44,11 +45,12 @@ class GR_RUNTIME_API thrift_application_common
   static bool d_main_called;
   static bool d_have_thrift_config;
   static std::string d_endpointStr;
-  static boost::shared_ptr<boost::thread> d_thread;
+  static boost::shared_ptr<gr::thread::thread> d_thread;
 
   apache::thrift::server::TServer* d_thriftserver;
 
   thrift_application_common() {;}
+
   int run(int, char*[]);
 };
 
@@ -58,14 +60,14 @@ class thrift_application_base
 public:
   boost::shared_ptr<thrift_application_common> d_application;
   thrift_application_base(TserverClass* _this);
-  ~thrift_application_base() {;}
+  ~thrift_application_base();
 
   static TserverBase* i();
   static const std::vector<std::string> endpoints();
 
 protected:
   bool have_thrift_config() { return d_application->d_have_thrift_config; }
-  void set_endpoint(const std::string& endpoint) { d_application->d_endpointStr = endpoint;}
+  void set_endpoint(const std::string& endpoint);
 
   //this one is the key... overwrite in templated/inherited variants
   virtual TserverBase* i_impl() = 0;
@@ -74,9 +76,14 @@ protected:
 
   apache::thrift::server::TServer* d_thriftserver;
 
+  static const unsigned int d_default_thrift_port;
   static const unsigned int d_default_num_thrift_threads;
 
+  gr::logger_ptr d_logger, d_debug_logger;
+
 private:
+  gr::thread::mutex d_lock;
+
   bool d_is_running;
 
   void start_thrift();
@@ -95,13 +102,15 @@ TserverClass* thrift_application_base<TserverBase, TserverClass>::d_this(0);
 template<typename TserverBase, typename TserverClass>
 thrift_application_base<TserverBase, TserverClass>::thrift_application_base(TserverClass* _this)
 {
+  gr::configure_default_loggers(d_logger, d_debug_logger, "controlport");
+  GR_LOG_DEBUG(d_debug_logger, "thrift_application_base: ctor");
+
   //std::cerr << "thrift_application_base: ctor" << std::endl;
   d_is_running = false;
   d_this = _this;
 
   //d_application->d_thriftserver = d_this->d_thriftserver;
 }
-
 
 template<typename TserverBase, typename TserverClass>
 void thrift_application_base<TserverBase, TserverClass>::kickoff()
@@ -111,8 +120,8 @@ void thrift_application_base<TserverBase, TserverClass>::kickoff()
   static bool run_once = false;
 
   if(!run_once) {
-    thrift_application_common::d_thread = boost::shared_ptr<boost::thread>
-      (new boost::thread(boost::bind(&thrift_application_base::start_thrift, d_this)));
+    thrift_application_common::d_thread = boost::shared_ptr<gr::thread::thread>
+      (new gr::thread::thread(boost::bind(&thrift_application_base::start_thrift, d_this)));
 
     run_once = true;
   }
@@ -129,6 +138,12 @@ const std::vector<std::string> thrift_application_base<TserverBase, TserverClass
   return ep;
 }
 
+template<typename TserverBase, typename TserverClass>
+void thrift_application_base<TserverBase, TserverClass>::set_endpoint(const std::string& endpoint)
+{
+  gr::thread::scoped_lock guard(d_lock);
+  d_application->d_endpointStr = endpoint;
+}
 
 template<typename TserverBase, typename TserverClass>
 TserverBase* thrift_application_base<TserverBase, TserverClass>::i()

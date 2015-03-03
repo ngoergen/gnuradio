@@ -58,7 +58,20 @@ rpcserver_booter_thrift::endpoints()
 }
 
 template<typename TserverBase, typename TserverClass>
+const unsigned int thrift_application_base<TserverBase, TserverClass>::d_default_thrift_port(9090U);
+
+template<typename TserverBase, typename TserverClass>
 const unsigned int thrift_application_base<TserverBase, TserverClass>::d_default_num_thrift_threads(10U);
+
+template<typename TserverBase, typename TserverClass>
+thrift_application_base<TserverBase, TserverClass>::~thrift_application_base()
+{
+  GR_LOG_DEBUG(d_debug_logger, "thrift_application_base: shutdown");
+  if(d_is_running) {
+    d_thriftserver->stop();
+    d_is_running = false;
+  }
+}
 
 template<typename TserverBase, typename TserverClass>
 void thrift_application_base<TserverBase, TserverClass>::start_thrift()
@@ -82,6 +95,8 @@ void thrift_application_base<TserverBase, TserverClass>::start_thrift()
   //}
 
   //std::cerr << "thrift_application_base: start_thrift" << std::endl;
-  d_thriftserver->serve();
+  GR_LOG_DEBUG(d_debug_logger, "thrift_application_base: start server");
   d_is_running = true;
+  d_thriftserver->serve();
+  GR_LOG_DEBUG(d_debug_logger, "thrift_application_base: server started");
 }

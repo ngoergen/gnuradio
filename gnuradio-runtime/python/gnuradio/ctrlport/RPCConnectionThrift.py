@@ -26,6 +26,7 @@ from thrift.transport import TTransport
 from thrift.protocol import TBinaryProtocol
 from gnuradio.ctrlport.GNURadio import ControlPort
 from gnuradio.ctrlport import RPCConnection
+from gnuradio import gr
 import sys
 
 class ThriftRadioClient:
@@ -38,6 +39,7 @@ class ThriftRadioClient:
         self.transport.open()
 
     def __del__(self):
+        self.radio.shutdown()
         self.transport.close()
 
     def getRadio(self, host, port):
@@ -64,8 +66,19 @@ class RPCConnectionThrift(RPCConnection.RPCConnection):
         self.BaseTypes = ttypes.BaseTypes
         self.KnobBase = ttypes.KnobBase
 
+        # If not set by the user, get the port number from the thrift
+        # config file, if one is set. Defaults to 9090 otherwise.
         if port is None:
-            port = 9090
+            p = gr.prefs()
+            thrift_config_file = p.get_string("ControlPort", "config", "");
+            if(len(thrift_config_file) > 0):
+                p.add_config_file(thrift_config_file)
+                port = p.get_long("thrift", "port", 9090)
+            else:
+                port = 9090
+        else:
+            port = int(port)
+
         super(RPCConnectionThrift, self).__init__(method='thrift', port=port, host=host)
         self.newConnection(host, port)
 
@@ -142,6 +155,13 @@ class RPCConnectionThrift(RPCConnection.RPCConnection):
         for key, knob in self.thriftclient.radio.getKnobs(*args).iteritems():
             #print("key:", key, "value:", knob, "type:", knob.type)
             result[key] = self.unpackKnob(key, knob)
+
+            # If complex, convert to Python complex
+            # FIXME: better list iterator way to handle this?
+            if(knob.type == self.BaseTypes.C32VECTOR):
+                for i in xrange(len(result[key].value)):
+                    result[key].value[i] = complex(result[key].value[i].re,
+                                                   result[key].value[i].im)
         return result
 
     def getKnobsRaw(self, *args):

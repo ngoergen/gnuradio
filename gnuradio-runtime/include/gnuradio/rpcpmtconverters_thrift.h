@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Free Software Foundation, Inc.
+ * Copyright 2014,2015 Free Software Foundation, Inc.
  *
  * This file is part of GNU Radio
  *
@@ -25,7 +25,7 @@
 #include <pmt/pmt.h>
 #include <boost/noncopyable.hpp>
 #include <boost/ptr_container/ptr_map.hpp>
-#include "gnuradio_types.h"
+#include "thrift/gnuradio_types.h"
 
 
 namespace rpcpmtconverter
