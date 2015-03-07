@@ -100,7 +100,6 @@ void thrift_application_base<TserverBase, TserverClass>::start_thrift()
   //  main(0, argv);
   //}
 
-  d_is_running = true;
   d_thriftserver->serve();
 }
 
