@@ -85,6 +85,7 @@ private:
   gr::thread::mutex d_lock;
 
   bool d_is_running;
+  static bool d_run_once;
 
   void start_thrift();
 
@@ -100,7 +101,8 @@ TserverClass* thrift_application_base<TserverBase, TserverClass>::d_this(0);
 
 
 template<typename TserverBase, typename TserverClass>
-thrift_application_base<TserverBase, TserverClass>::thrift_application_base(TserverClass* _this)
+thrift_application_base<TserverBase, TserverClass>::thrift_application_base(TserverClass* _this) :
+d_is_running(false)
 {
   gr::configure_default_loggers(d_logger, d_debug_logger, "controlport");
   GR_LOG_DEBUG(d_debug_logger, "thrift_application_base: ctor");
@@ -114,9 +116,7 @@ void thrift_application_base<TserverBase, TserverClass>::kickoff()
 {
   //std::cerr << "thrift_application_base: kickoff" << std::endl;
 
-  static bool run_once = false;
-
-  if(!run_once) {
+  if(!d_run_once) {
     thrift_application_common::d_thread = boost::shared_ptr<gr::thread::thread>
       (new gr::thread::thread(boost::bind(&thrift_application_base::start_thrift, d_this)));
 
@@ -138,10 +138,9 @@ void thrift_application_base<TserverBase, TserverClass>::kickoff()
       }
     }
 
-    run_once = true;
+    d_run_once = true;
   }
 }
-
 
 template<typename TserverBase, typename TserverClass>
 const std::vector<std::string> thrift_application_base<TserverBase, TserverClass>::endpoints()
@@ -161,7 +160,7 @@ void thrift_application_base<TserverBase, TserverClass>::set_endpoint(const std:
 template<typename TserverBase, typename TserverClass>
 TserverBase* thrift_application_base<TserverBase, TserverClass>::i()
 {
-  if(!d_this->application_started()) {
+  if(!d_run_once) {
     kickoff();
   }
   return d_this->i_impl();

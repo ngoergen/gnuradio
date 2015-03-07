@@ -60,6 +60,10 @@ rpcserver_booter_thrift::endpoints()
 }
 
 template<typename TserverBase, typename TserverClass>
+bool  thrift_application_base<TserverBase, TserverClass>::d_run_once(false);
+
+
+template<typename TserverBase, typename TserverClass>
 const unsigned int thrift_application_base<TserverBase, TserverClass>::d_default_thrift_port(0U);
 
 template<typename TserverBase, typename TserverClass>
