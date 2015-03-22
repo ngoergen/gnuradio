@@ -1,6 +1,6 @@
 /* -*- c++ -*- */
 /*
- * Copyright 2012 Free Software Foundation, Inc.
+ * Copyright 2012,2015 Free Software Foundation, Inc.
  *
  * This file is part of GNU Radio
  *
@@ -23,8 +23,8 @@
 #ifndef RPCSERVER_AGGREGATOR_H
 #define RPCSERVER_AGGREGATOR_H
 
-#include <vector>
 #include <string>
+#include <boost/scoped_ptr.hpp>
 #include <gnuradio/rpcserver_base.h>
 #include <gnuradio/rpcmanager_base.h>
 
@@ -41,60 +41,15 @@ public:
   void unregisterQueryCallback(const std::string &id);
 
   void registerServer(rpcmanager_base::rpcserver_booter_base_sptr server);
+  void reconfigureServer(rpcmanager_base::rpcserver_booter_base_sptr server);
 
   const std::string& type();
 
-  const std::vector<std::string>& registeredServers();
+  const std::vector<std::string> registeredServers();
 
 private:
-  template<class T, typename Tcallback>
-  struct registerConfigureCallback_f: public std::unary_function<T,void>
-  {
-    registerConfigureCallback_f(const std::string &_id,  const Tcallback _callback)
-      : id(_id), callback(_callback)
-    {;}
-
-    void operator()(T& x) { x->i()->registerConfigureCallback(id, callback); }
-    const std::string& id;  const Tcallback& callback;
-  };
-
-  template<class T, typename Tcallback>
-  struct unregisterConfigureCallback_f: public std::unary_function<T,void>
-  {
-    unregisterConfigureCallback_f(const std::string &_id)
-      : id(_id)
-    {;}
-
-    void operator()(T& x) { x->i()->unregisterConfigureCallback(id); }
-    const std::string&  id;
-   };
-
-  template<class T, typename Tcallback>
-  struct registerQueryCallback_f: public std::unary_function<T,void>
-  {
-    registerQueryCallback_f(const std::string &_id,  const Tcallback _callback)
-      : id(_id), callback(_callback)
-    {;}
-
-    void operator()(T& x) { x->i()->registerQueryCallback(id, callback); }
-    const std::string& id;  const Tcallback& callback;
-  };
-
-  template<class T, typename Tcallback>
-  struct unregisterQueryCallback_f: public std::unary_function<T,void>
-  {
-    unregisterQueryCallback_f(const std::string &_id)
-      : id(_id)
-    {;}
-
-    void operator()(T& x) { x->i()->unregisterQueryCallback(id); }
-    const std::string& id;
-  };
-
-  const std::string d_type;
-  typedef std::vector<rpcmanager_base::rpcserver_booter_base_sptr> rpcServerMap_t;
-  std::vector<std::string> d_registeredServers;
-  rpcServerMap_t d_serverlist;
+  class rpcserver_aggregator_impl;
+  boost::scoped_ptr<rpcserver_aggregator_impl> p_impl;
 };
 
 #endif /* RPCSERVER_AGGREGATOR_H */
