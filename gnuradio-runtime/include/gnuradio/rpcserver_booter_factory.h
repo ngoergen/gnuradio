@@ -1,6 +1,6 @@
 /* -*- c++ -*- */
 /*
- * Copyright 2012 Free Software Foundation, Inc.
+ * Copyright 2015 Free Software Foundation, Inc.
  *
  * This file is part of GNU Radio
  *
@@ -20,30 +20,24 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include <gnuradio/rpcserver_booter_aggregator.h>
-#include <gnuradio/rpcmanager.h>
-#include <gnuradio/rpcserver_selector.h>
-#include <gnuradio/rpcserver_booter_factory_register_helper.h>
+#ifndef RPCSERVER_BOOTER_FACTORY
+#define RPCSERVER_BOOTER_FACTORY
 
-bool rpcmanager::make_aggregator(false);
+#include <gnuradio/rpcserver_booter_factory_base.h>
 
-#ifdef GR_RPCSERVER_ENABLED
-rpcmanager manager_instance;
-#endif
+template<typename T>
+class rpcserver_booter_factory :
+public virtual rpcserver_booter_factory_base
+{
+public:
+  rpcserver_booter_factory()
+{;}
 
-#ifdef GR_RPCSERVER_ICE
-  #error TODO ICE
-#endif
+private:
+  rpcmanager_base::rpcserver_booter_base_sptr create() {
+    return rpcmanager_base::rpcserver_booter_base_sptr(new T());
+  }
 
-#ifdef GR_RPCSERVER_THRIFT
-#include <gnuradio/rpcserver_booter_thrift.h>
-rpcserver_booter_factory_register_helper<rpcserver_booter_thrift> boot_thrift;
-#endif
+};
 
-#ifdef GR_RPCSERVER_ERLANG
-  #error TODO ERLANG
-#endif
-
-#ifdef GR_RPCSERVER_XMLRPC
-  #error TODO XMLRPC
-#endif
+#endif /* RPCSERVER_BOOTER_FACTORY_BASE */

@@ -35,6 +35,8 @@ public:
   virtual ~rpcserver_booter_base() {;}
 
   virtual rpcserver_base* i()=0;
+  virtual void stop_server(const std::string& type) = 0;
+  virtual void stop_servers() = 0;
   virtual const std::vector<std::string> endpoints()=0;
   virtual const std::string& type()=0;
 

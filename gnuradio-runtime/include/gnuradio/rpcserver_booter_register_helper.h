@@ -1,6 +1,6 @@
 /* -*- c++ -*- */
 /*
- * Copyright 2012 Free Software Foundation, Inc.
+ * Copyright 2015 Free Software Foundation, Inc.
  *
  * This file is part of GNU Radio
  *
@@ -20,30 +20,24 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include <gnuradio/rpcserver_booter_aggregator.h>
+#ifndef RPCSERVER_BOOTER_REGISTER_HELPER
+#define RPCSERVER_BOOTER_REGISTER_HELPER
+
 #include <gnuradio/rpcmanager.h>
-#include <gnuradio/rpcserver_selector.h>
-#include <gnuradio/rpcserver_booter_factory_register_helper.h>
 
-bool rpcmanager::make_aggregator(false);
+class rpcserver_booter_register_helper
+{
+public:
+  rpcserver_booter_register_helper(rpcmanager_base::rpcserver_booter_base_sptr booter)
+{
+    rpcmanager::register_booter(booter);
+}
 
-#ifdef GR_RPCSERVER_ENABLED
-rpcmanager manager_instance;
-#endif
+void reset_booter(rpcmanager_base::rpcserver_booter_base_sptr booter)
+{
+  rpcmanager::reset_booter( booter);
+}
 
-#ifdef GR_RPCSERVER_ICE
-  #error TODO ICE
-#endif
+};
 
-#ifdef GR_RPCSERVER_THRIFT
-#include <gnuradio/rpcserver_booter_thrift.h>
-rpcserver_booter_factory_register_helper<rpcserver_booter_thrift> boot_thrift;
-#endif
-
-#ifdef GR_RPCSERVER_ERLANG
-  #error TODO ERLANG
-#endif
-
-#ifdef GR_RPCSERVER_XMLRPC
-  #error TODO XMLRPC
-#endif
+#endif /* RPCSERVER_BOOTER_REGISTER_HELPER */

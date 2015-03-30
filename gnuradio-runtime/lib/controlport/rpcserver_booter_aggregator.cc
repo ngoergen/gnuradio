@@ -61,3 +61,15 @@ rpcserver_booter_aggregator::registeredServers()
 {
   return server->registeredServers();
 }
+
+void
+rpcserver_booter_aggregator::stop_server(const std::string& type)
+{
+  server->stop_server(type);
+}
+
+void
+rpcserver_booter_aggregator::stop_servers()
+{
+  server->stop_servers();
+}

@@ -41,11 +41,14 @@ public:
   void unregisterQueryCallback(const std::string &id);
 
   void registerServer(rpcmanager_base::rpcserver_booter_base_sptr server);
-  void reconfigureServer(rpcmanager_base::rpcserver_booter_base_sptr server);
-
-  const std::string& type();
 
   const std::vector<std::string> registeredServers();
+
+  void reconfigure_server(rpcmanager_base::rpcserver_booter_base_sptr server);
+
+  void stop_server(const std::string& type);
+
+  void stop_servers();
 
 private:
   class rpcserver_aggregator_impl;

@@ -25,13 +25,14 @@
 
 #include <gnuradio/api.h>
 #include <gnuradio/rpcmanager_base.h>
-#include <gnuradio/rpcserver_booter_aggregator.h>
+#include <gnuradio/rpcserver_booter_factory_base.h>
 #include <boost/scoped_ptr.hpp>
 #include <iostream>
 
 class GR_RUNTIME_API rpcmanager : public virtual rpcmanager_base
 {
 public:
+
   rpcmanager();
   ~rpcmanager();
 
@@ -39,28 +40,17 @@ public:
 
   static void register_booter(rpcmanager_base::rpcserver_booter_base_sptr booter);
 
-  static void reconfigure_booter(rpcmanager_base::rpcserver_booter_base_sptr booter);
+  static void register_booter_factory(const std::string& booter_type, rpcmanager_base::rpcserver_booter_factory_base_sptr booter_factory);
 
-  template<typename T> class rpcserver_booter_register_helper
-  {
-  public:
-    rpcserver_booter_register_helper()
-  {
-      rpcmanager::register_booter(create());
-  }
+  static void reset_booter(rpcmanager_base::rpcserver_booter_base_sptr booter);
 
-    void reconfigure()
-    {
-      rpcmanager::reconfigure_booter(create());
-    }
+  static void reset_booter(const std::string& booter_type);
 
-  private:
-    rpcmanager_base::rpcserver_booter_base_sptr create() {
-      return rpcmanager_base::rpcserver_booter_base_sptr(new T());
-    }
+  static void reset_all_booters();
 
-    //TODO: unregister
-  };
+  static void stop_server(const std::string& booter_type);
+  
+  static void stop_servers();
 
 private:
   class rpcmanager_impl;
