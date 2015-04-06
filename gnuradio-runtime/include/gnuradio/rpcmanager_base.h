@@ -26,17 +26,20 @@
 #include <boost/shared_ptr.hpp>
 
 class rpcserver_booter_base;
-class rpcserver_booter_factory_base;
+//class rpcserver_booter_aggregator;
 
 class rpcmanager_base
 {
  public:
   typedef boost::shared_ptr<rpcserver_booter_base> rpcserver_booter_base_sptr;
-  typedef boost::shared_ptr< rpcserver_booter_factory_base> rpcserver_booter_factory_base_sptr;
 
   rpcmanager_base() {;}
   ~rpcmanager_base() {;}
-  
+
+  //static rpcserver_booter_base* get();
+
+  //static void register_booter(rpcserver_booter_base_sptr booter);
+
 private:
 };
 

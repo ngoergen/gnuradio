@@ -33,10 +33,11 @@
 class rpcserver_aggregator::rpcserver_aggregator_impl {
 private:
   friend class rpcserver_aggregator;
-  rpcserver_aggregator_impl()
+  rpcserver_aggregator_impl() : d_type("aggregator")
   {;}
-  typedef boost::ptr_map<std::string, rpcmanager_base::rpcserver_booter_base_sptr> rpc_server_map_t;
-  rpc_server_map_t d_registered_servers;
+  const std::string d_type;
+  typedef boost::ptr_map<std::string, rpcmanager_base::rpcserver_booter_base_sptr> rpcServerMap_t;
+  rpcServerMap_t d_registeredServers;
 };
 
 rpcserver_aggregator::rpcserver_aggregator() :
@@ -46,11 +47,17 @@ rpcserver_aggregator::rpcserver_aggregator() :
 rpcserver_aggregator::~rpcserver_aggregator()
 {;}
 
+const std::string&
+rpcserver_aggregator::type()
+{
+  return p_impl->d_type;
+}
+
 const std::vector<std::string>
 rpcserver_aggregator::registeredServers()
 {
   std::vector<std::string> keys;
-  boost::copy(p_impl->d_registered_servers | boost::adaptors::map_keys, std::back_inserter(keys));
+  boost::copy(p_impl->d_registeredServers | boost::adaptors::map_keys, std::back_inserter(keys));
   return keys;
 }
 
@@ -58,7 +65,7 @@ void
 rpcserver_aggregator::registerConfigureCallback(const std::string &id,
                                                 const configureCallback_t callback)
 {
-  BOOST_FOREACH(rpcserver_aggregator_impl::rpc_server_map_t::value_type booter, p_impl->d_registered_servers) {
+  BOOST_FOREACH(rpcserver_aggregator_impl::rpcServerMap_t::value_type booter, p_impl->d_registeredServers) {
     booter->second->get()->i()->registerConfigureCallback(id, callback);
   }
 }
@@ -66,7 +73,7 @@ rpcserver_aggregator::registerConfigureCallback(const std::string &id,
 void
 rpcserver_aggregator::unregisterConfigureCallback(const std::string &id)
 {
-  BOOST_FOREACH(rpcserver_aggregator_impl::rpc_server_map_t::value_type booter, p_impl->d_registered_servers) {
+  BOOST_FOREACH(rpcserver_aggregator_impl::rpcServerMap_t::value_type booter, p_impl->d_registeredServers) {
     booter->second->get()->i()->unregisterConfigureCallback(id);
   }
 }
@@ -74,7 +81,7 @@ rpcserver_aggregator::unregisterConfigureCallback(const std::string &id)
 void
 rpcserver_aggregator::registerQueryCallback(const std::string &id, const queryCallback_t callback)
 {
-  BOOST_FOREACH(rpcserver_aggregator_impl::rpc_server_map_t::value_type booter, p_impl->d_registered_servers) {
+  BOOST_FOREACH(rpcserver_aggregator_impl::rpcServerMap_t::value_type booter, p_impl->d_registeredServers) {
     booter->second->get()->i()->registerQueryCallback(id, callback);
   }
 }
@@ -82,7 +89,7 @@ rpcserver_aggregator::registerQueryCallback(const std::string &id, const queryCa
 void
 rpcserver_aggregator::unregisterQueryCallback(const std::string &id)
 {
-  BOOST_FOREACH(rpcserver_aggregator_impl::rpc_server_map_t::value_type booter, p_impl->d_registered_servers) {
+  BOOST_FOREACH(rpcserver_aggregator_impl::rpcServerMap_t::value_type booter, p_impl->d_registeredServers) {
     booter->second->get()->i()->unregisterQueryCallback(id);
   }
 }
@@ -90,9 +97,9 @@ rpcserver_aggregator::unregisterQueryCallback(const std::string &id)
 void
 rpcserver_aggregator::registerServer(rpcmanager_base::rpcserver_booter_base_sptr server)
 {
-  if (p_impl->d_registered_servers.find(server->type()) == p_impl->d_registered_servers.end())
+  if (p_impl->d_registeredServers.find(server->type()) == p_impl->d_registeredServers.end())
     {
-      boost::assign::ptr_map_insert( p_impl->d_registered_servers )(server->type(), server);
+      boost::assign::ptr_map_insert( p_impl->d_registeredServers )(server->type(), server);
     }
   else
     {
@@ -104,11 +111,11 @@ rpcserver_aggregator::registerServer(rpcmanager_base::rpcserver_booter_base_sptr
 }
 
 void
-rpcserver_aggregator::reconfigure_server(rpcmanager_base::rpcserver_booter_base_sptr server)
+rpcserver_aggregator::reconfigureServer(rpcmanager_base::rpcserver_booter_base_sptr server)
 {
-  if (p_impl->d_registered_servers.find(server->type()) != p_impl->d_registered_servers.end())
+  if (p_impl->d_registeredServers.find(server->type()) != p_impl->d_registeredServers.end())
     {
-      boost::assign::ptr_map_insert( p_impl->d_registered_servers )(server->type(), server);
+      boost::assign::ptr_map_insert( p_impl->d_registeredServers )(server->type(), server);
     }
   else
     {
@@ -117,27 +124,4 @@ rpcserver_aggregator::reconfigure_server(rpcmanager_base::rpcserver_booter_base_
           << server->type() << " has not registered" << std::endl;
       throw std::runtime_error(s.str());
     }
-}
-
-void
-rpcserver_aggregator::stop_server(const std::string& type)
-{
-  rpcserver_aggregator_impl::rpc_server_map_t::iterator server(p_impl->d_registered_servers.find(type));
-  if (server != p_impl->d_registered_servers.end())
-    {
-      server->second->get()->stop_server(type);
-    }
-  else
-    {
-      std::stringstream s;
-      s << "rpcserver_aggregator::stop_application: server of type "
-          << type << " has not registered" << std::endl;
-      throw std::runtime_error(s.str());
-    }
-}
-
-void
-rpcserver_aggregator::stop_servers()
-{
-//TBD - stop all registered servers
 }

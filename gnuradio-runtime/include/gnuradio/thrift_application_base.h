@@ -28,7 +28,6 @@
 #include <gnuradio/prefs.h>
 #include <gnuradio/thread/thread.h>
 #include <boost/date_time/posix_time/posix_time.hpp>
-#include <boost/scoped_ptr.hpp>
 
 namespace {
   // Time, in milliseconds, to wait between checks to the Thrift runtime to see if
@@ -95,14 +94,10 @@ public:
    */
   static TserverBase* i();
 
-  static void restart_applicaiton();
-
   /*!
    * Returns the endpoint string of this application.
    */
   static const std::vector<std::string> endpoints();
-
-  static void stop_application();
 
 protected:
   /*!
@@ -123,7 +118,7 @@ protected:
   /*!
    * Reference to the Thrift runtime.
    */
-  static boost::scoped_ptr<apache::thrift::server::TServer> d_thriftserver;
+  std::auto_ptr<apache::thrift::server::TServer> d_thriftserver;
 
   /*!
    * Max number of attempts when checking the Thrift runtime for
@@ -165,8 +160,6 @@ private:
   // not provided here.
   void start_thrift();
 
-  void stop_thrift();
-
   // Non-blocking function that returns true when the Thrift
   // runtime has finished initialization. Must be implemented
   // as a specialized template function for a particular booter
@@ -190,82 +183,46 @@ private:
   // Will be set to true by a the application_started() function,
   // specialized for a particular booter implementation, once the
   // thrift runtime has successfully initialized.
-  static bool d_thirft_is_running;
+  bool d_thirft_is_running;
 };
 
 template<typename TserverBase, typename TserverClass>
 TserverClass* thrift_application_base<TserverBase, TserverClass>::d_application(0);
 
 template<typename TserverBase, typename TserverClass>
-bool thrift_application_base<TserverBase, TserverClass>::d_thirft_is_running(false);
-
-template<typename TserverBase, typename TserverClass>
-boost::scoped_ptr<apache::thrift::server::TServer>
-thrift_application_base<TserverBase, TserverClass>::d_thriftserver;
-
-template<typename TserverBase, typename TserverClass>
 thrift_application_base<TserverBase, TserverClass>::thrift_application_base(TserverClass* _app)
-: d_lock()
-  {
+  : d_lock(),
+    d_thirft_is_running(false)
+{
   gr::configure_default_loggers(d_logger, d_debug_logger, "controlport");
   d_application = _app;
   //GR_LOG_DEBUG(d_debug_logger, "thrift_application_base: ctor");
-  }
+}
 
 template<typename TserverBase, typename TserverClass>
 void thrift_application_base<TserverBase, TserverClass>::start_application()
 {
-  //  std::cerr << "thrift_application_base: start_application" << std::endl;
+  //std::cerr << "thrift_application_base: start_application" << std::endl;
 
   unsigned int max_init_attempts = \
-      static_cast<unsigned int>(gr::prefs::singleton()->get_long("thrift", "init_attempts",
-                                                                 d_default_max_init_attempts));
+    static_cast<unsigned int>(gr::prefs::singleton()->get_long("thrift", "init_attempts",
+                                                               d_default_max_init_attempts));
 
   if(!p_impl->d_application_initilized) {
-      d_application->start_server();
+    p_impl->d_start_thrift_thread.reset(
+    (new gr::thread::thread(boost::bind(&thrift_application_base::start_thrift, d_application))));
 
-      p_impl->d_start_thrift_thread.reset(
-          (new gr::thread::thread(boost::bind(&thrift_application_base::start_thrift, d_application))));
+    bool app_started(false);
+    for(unsigned int attempts(0); (!app_started && attempts < max_init_attempts); ++attempts) {
+      boost::this_thread::sleep(boost::posix_time::milliseconds(THRIFTAPPLICATION_ACTIVATION_TIMEOUT_MS));
+      app_started = d_application->application_started();
+    }
 
-      bool app_started(false);
-      for(unsigned int attempts(0); (!app_started && attempts < max_init_attempts); ++attempts) {
-          boost::this_thread::sleep(boost::posix_time::milliseconds(THRIFTAPPLICATION_ACTIVATION_TIMEOUT_MS));
-          app_started = d_application->application_started();
-      }
+    if(!app_started) {
+      std::cerr << "thrift_application_base::start_application(), timeout waiting to port number might have failed?" << std::endl;
+    }
 
-      if(!app_started) {
-          std::cerr << "thrift_application_base::start_application(), timeout waiting to port number might have failed?" << std::endl;
-      }
-
-      p_impl->d_application_initilized = true;
-  }
-}
-
-template<typename TserverBase,  typename TserverClass>
-void thrift_application_base<TserverBase, TserverClass>::stop_application()
-{
-  GR_LOG_DEBUG(d_debug_logger, "thrift_application_base: stop_application");
-
-  if(p_impl->d_application_initilized) {
-      GR_LOG_DEBUG(d_debug_logger, "thrift_application_base: stop_application d_thirft_is_running. stopping");
-      d_application->stop_thrift();
-      d_thirft_is_running = false;
-      p_impl->d_application_initilized = false;
-      p_impl->d_endpointStr = "";
-  }
-}
-
-
-template<typename TserverBase, typename TserverClass>
-thrift_application_base<TserverBase, TserverClass>::~thrift_application_base()
-{
-  GR_LOG_DEBUG(d_debug_logger, "thrift_application_base: ~thrift_application_base");
-  if(p_impl->d_application_initilized) {
-      GR_LOG_DEBUG(d_debug_logger, "thrift_application_base: ~thrift_application_base d_thirft_is_running. stopping");
-      thrift_application_base::stop_thrift();
-      d_thirft_is_running = false;
-      p_impl->d_application_initilized = false;
-      p_impl->d_endpointStr = "";
+    p_impl->d_application_initilized = true;
   }
 }
 
@@ -288,16 +245,9 @@ template<typename TserverBase, typename TserverClass>
 TserverBase* thrift_application_base<TserverBase, TserverClass>::i()
 {
   if(!p_impl->d_application_initilized) {
-      start_application();
+    start_application();
   }
   return d_application->i_impl();
-}
-
-template<typename TserverBase, typename TserverClass>
-void thrift_application_base<TserverBase, TserverClass>::restart_applicaiton()
-{
-  stop_application();
-  start_application();
 }
 
 #endif

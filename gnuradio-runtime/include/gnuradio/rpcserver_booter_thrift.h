@@ -1,4 +1,4 @@
-/* -*- c++ c-*- */
+/* -*- c++ -*- */
 /*
  * Copyright 2015 Free Software Foundation, Inc.
  *
@@ -42,9 +42,6 @@ class rpcserver_booter_thrift
   ~rpcserver_booter_thrift();
 
   rpcserver_base* i();
-  void stop_server(const std::string& type);
-  void stop_servers();
-  
   const std::string & type() {return d_type;}
   const std::vector<std::string> endpoints();
 

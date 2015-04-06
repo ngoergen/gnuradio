@@ -69,9 +69,6 @@ class GR_RUNTIME_API rpcmanager : public virtual rpcmanager_base
 {
  public:
   static rpcserver_booter_base* get();
-  
-  //static void stop_server(const std::string& booter_type);
-  //static void stop_servers();
 };
 
 

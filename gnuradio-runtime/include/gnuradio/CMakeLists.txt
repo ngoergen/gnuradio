@@ -81,8 +81,6 @@ install(FILES
   rpcserver_booter_aggregator.h
   rpcserver_booter_base.h
   rpcserver_selector.h
-  rpcserver_booter_factory_base.h
-  rpcserver_booter_factory.h
   ${CMAKE_CURRENT_BINARY_DIR}/logger.h
   DESTINATION ${GR_INCLUDE_DIR}/gnuradio
   COMPONENT "runtime_devel"

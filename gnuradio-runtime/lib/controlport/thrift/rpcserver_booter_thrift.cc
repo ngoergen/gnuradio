@@ -26,7 +26,7 @@
 #include <boost/asio/ip/host_name.hpp>
 
 namespace {
-  static const char* const SERVER_TYPE("thrift");
+  static const char* const CONTROL_PORT_CLASS("thrift");
   static const unsigned int ETHERNET_HEADER_SIZE(14);
   static const unsigned int IP_HEADER_SIZE(20);
   static const unsigned int TCP_HEADER_SIZE(32);
@@ -44,7 +44,7 @@ rpcserver_booter_thrift::rpcserver_booter_thrift() :
                          rpcserver_thrift,
                          rpcserver_booter_thrift,
                          boost::shared_ptr<GNURadio::ControlPortIf> >(this),
-  d_type(std::string(SERVER_TYPE))
+  d_type(std::string(CONTROL_PORT_CLASS))
 {;}
 
 rpcserver_booter_thrift::~rpcserver_booter_thrift()
@@ -70,25 +70,6 @@ rpcserver_booter_thrift::endpoints()
                                 GNURadio::ControlPortIf>::endpoints();
 }
 
-void
-rpcserver_booter_thrift::stop_server(const std::string& type) {
-  if (type != d_type) {
-      std::stringstream s;
-      s << "thrift_server_template::stop_server: requested stop application on type "
-          << type << " however this booter's application is of type " << d_type << std::endl;
-      throw std::runtime_error(s.str());
-  }
-
-thrift_server_template<rpcserver_base, rpcserver_thrift,
-                                  rpcserver_booter_thrift,
-                                  GNURadio::ControlPortIf>::stop_application();
-}
-
-void
-rpcserver_booter_thrift::stop_servers() {
-  stop_server(d_type);
-}
-
 // Specialized thrift_application_base attributes and functions
 // for this rpcserver_booter instance.
 
@@ -110,24 +91,24 @@ std::auto_ptr<thrift_application_base_impl>
   thrift_application_base<rpcserver_base,  rpcserver_booter_thrift>::p_impl(
       new thrift_application_base_impl());
 
+template<class rpcserver_base, class rpcserver_booter_thrift>
+thrift_application_base<rpcserver_base, rpcserver_booter_thrift>::~thrift_application_base()
+{
+  GR_LOG_DEBUG(d_debug_logger, "thrift_application_base: shutdown");
+  if(d_thirft_is_running) {
+    d_thriftserver->stop();
+    d_thirft_is_running = false;
+  }
+}
+
 template<class  rpcserver_base, class  rpcserver_booter_thrift>
-void 
-thrift_application_base<rpcserver_base, rpcserver_booter_thrift>::start_thrift()
+void thrift_application_base<rpcserver_base, rpcserver_booter_thrift>::start_thrift()
 {
   d_thriftserver->serve();
 }
 
-
-template<class  rpcserver_base, class  rpcserver_booter_thrift>
-void 
-thrift_application_base<rpcserver_base, rpcserver_booter_thrift>::stop_thrift()
-{
-  d_thriftserver->stop();
-}
-
-template<class  rpcserver_base, class rpcserver_booter_thrift>
-bool 
-thrift_application_base<rpcserver_base, rpcserver_booter_thrift>::application_started()
+template<class  rpcserver_base, typename rpcserver_booter_thrift>
+bool thrift_application_base<rpcserver_base, rpcserver_booter_thrift>::application_started()
 {
   if (d_thirft_is_running) return true;
 

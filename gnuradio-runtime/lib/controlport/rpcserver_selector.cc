@@ -23,7 +23,6 @@
 #include <gnuradio/rpcserver_booter_aggregator.h>
 #include <gnuradio/rpcmanager.h>
 #include <gnuradio/rpcserver_selector.h>
-#include <gnuradio/rpcserver_booter_factory_register_helper.h>
 
 bool rpcmanager::make_aggregator(false);
 
@@ -37,7 +36,7 @@ rpcmanager manager_instance;
 
 #ifdef GR_RPCSERVER_THRIFT
 #include <gnuradio/rpcserver_booter_thrift.h>
-rpcserver_booter_factory_register_helper<rpcserver_booter_thrift> boot_thrift;
+rpcmanager::rpcserver_booter_register_helper<rpcserver_booter_thrift> boot_thrift;
 #endif
 
 #ifdef GR_RPCSERVER_ERLANG
