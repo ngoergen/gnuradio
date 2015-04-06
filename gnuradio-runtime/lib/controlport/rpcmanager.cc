@@ -185,3 +185,21 @@ rpcmanager::stop_server(const std::string& server_type) {
           "and a booter is not currently registered\n");
   }
 }
+
+void
+rpcmanager::stop_servers() {
+  initialization_check();
+
+  if(p_impl->aggregator_registered)
+    {
+      p_impl->aggregator->instance()->stop_servers();
+    }
+  else if(p_impl->booter_registered)
+    {
+      p_impl->boot->stop_servers();
+    }
+  else {
+      throw std::runtime_error("rpcmanager: stop_server called, but an aggregator is not in use, "
+          "and a booter is not currently registered\n");
+  }
+}

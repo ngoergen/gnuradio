@@ -68,10 +68,13 @@ enum KnobType {
 class GR_RUNTIME_API rpcmanager : public virtual rpcmanager_base
 {
  public:
+  rpcmanager();
+  ~rpcmanager();
+
   static rpcserver_booter_base* get();
   
-  //static void stop_server(const std::string& booter_type);
-  //static void stop_servers();
+  static void stop_server(const std::string& booter_type);
+  static void stop_servers();
 };
 
 
