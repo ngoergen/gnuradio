@@ -1,6 +1,6 @@
 /* -*- c++ -*- */
 /*
- * Copyright 2012,2015 Free Software Foundation, Inc.
+ * Copyright 2012 Free Software Foundation, Inc.
  *
  * This file is part of GNU Radio
  *
@@ -26,48 +26,36 @@
 #include <gnuradio/api.h>
 #include <gnuradio/rpcmanager_base.h>
 #include <gnuradio/rpcserver_booter_aggregator.h>
-#include <boost/scoped_ptr.hpp>
+#include <memory>
 #include <iostream>
 
 class GR_RUNTIME_API rpcmanager : public virtual rpcmanager_base
 {
-public:
+ public:
   rpcmanager();
   ~rpcmanager();
 
   static rpcserver_booter_base* get();
 
-  static void register_booter(rpcmanager_base::rpcserver_booter_base_sptr booter);
-
-  static void reconfigure_booter(rpcmanager_base::rpcserver_booter_base_sptr booter);
+  static void register_booter(rpcserver_booter_base* booter);
 
   template<typename T> class rpcserver_booter_register_helper
   {
   public:
-    rpcserver_booter_register_helper()
-  {
-      rpcmanager::register_booter(create());
-  }
-
-    void reconfigure()
-    {
-      rpcmanager::reconfigure_booter(create());
-    }
-
-  private:
-    rpcmanager_base::rpcserver_booter_base_sptr create() {
-      return rpcmanager_base::rpcserver_booter_base_sptr(new T());
+    rpcserver_booter_register_helper() {
+      rpcmanager::register_booter(new T());
     }
 
     //TODO: unregister
   };
 
-private:
-  class rpcmanager_impl;
-  static boost::scoped_ptr<rpcmanager_impl> p_impl;
-
-  static void initialization_check();
+ private:
   static bool make_aggregator;
+  static bool booter_registered;
+  static bool aggregator_registered;
+  static void rpcserver_booter_base_sptr_dest(rpcserver_booter_base* b) {;}
+  static std::auto_ptr<rpcserver_booter_base> boot;
+  static std::auto_ptr<rpcserver_booter_aggregator> aggregator;
 };
 
 #endif /* RPCMANAGER_H */

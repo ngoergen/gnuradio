@@ -33,13 +33,7 @@ rpcserver_booter_aggregator::~rpcserver_booter_aggregator()
 rpcserver_base*
 rpcserver_booter_aggregator::i()
 {
-  return server.get();
-}
-
-rpcserver_aggregator*
-rpcserver_booter_aggregator::instance()
-{
-  return server.get();
+  return &(*server);
 }
 
 const std::string&
@@ -56,8 +50,14 @@ rpcserver_booter_aggregator::endpoints()
   return ep;
 }
 
-const std::vector<std::string>
+const std::vector<std::string>&
 rpcserver_booter_aggregator::registeredServers()
 {
   return server->registeredServers();
+}
+
+rpcserver_aggregator*
+rpcserver_booter_aggregator::agg()
+{
+  return &(*server);
 }

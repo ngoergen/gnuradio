@@ -68,7 +68,12 @@ enum KnobType {
 class GR_RUNTIME_API rpcmanager : public virtual rpcmanager_base
 {
  public:
+  rpcmanager();
+  ~rpcmanager();
+
   static rpcserver_booter_base* get();
+
+  static void register_booter(rpcserver_booter_base* booter);
 };
 
 
