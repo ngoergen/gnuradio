@@ -52,9 +52,6 @@ class test_ctrlport_probes(gr_unittest.TestCase):
         expected_result = [1, 2, 3, 4,
                            5, 6, 7, 8]
 
-        # Make sure we have time for flowgraph to run
-        time.sleep(0.1)
-
         # Get available endpoint
         ep = gr.rpcmanager_get().endpoints()[0]
         hostname = re.search("-h (\S+|\d+\.\d+\.\d+\.\d+)", ep).group(1)
@@ -92,9 +89,6 @@ class test_ctrlport_probes(gr_unittest.TestCase):
 
         expected_result = [1, 2, 3, 4, 5, 6, 7, 8,]
 
-        # Make sure we have time for flowgraph to run
-        time.sleep(0.1)
-
         # Get available endpoint
         ep = gr.rpcmanager_get().endpoints()[0]
         hostname = re.search("-h (\S+|\d+\.\d+\.\d+\.\d+)", ep).group(1)
@@ -130,9 +124,6 @@ class test_ctrlport_probes(gr_unittest.TestCase):
         self.tb.start()
 
         expected_result = [1, 2, 3, 4, 5, 6, 7, 8,]
-
-        # Make sure we have time for flowgraph to run
-        time.sleep(0.1)
 
         # Get available endpoint
         ep = gr.rpcmanager_get().endpoints()[0]
@@ -171,9 +162,6 @@ class test_ctrlport_probes(gr_unittest.TestCase):
 
         expected_result = [1, 2, 3, 4, 5, 6, 7, 8,]
 
-        # Make sure we have time for flowgraph to run
-        time.sleep(0.1)
-
         # Get available endpoint
         ep = gr.rpcmanager_get().endpoints()[0]
         hostname = re.search("-h (\S+|\d+\.\d+\.\d+\.\d+)", ep).group(1)
@@ -209,9 +197,6 @@ class test_ctrlport_probes(gr_unittest.TestCase):
         self.tb.start()
 
         expected_result = [1, 2, 3, 4, 5, 6, 7, 8,]
-
-        # Make sure we have time for flowgraph to run
-        time.sleep(0.1)
 
         # Get available endpoint
         ep = gr.rpcmanager_get().endpoints()[0]

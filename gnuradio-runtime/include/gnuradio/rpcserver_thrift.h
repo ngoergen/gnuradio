@@ -62,7 +62,7 @@ public:
   virtual void shutdown();
 
  private:
-  boost::mutex d_callback_lock;
+  boost::mutex d_callback_map_lock;
 
   typedef std::map<std::string, configureCallback_t> ConfigureCallbackMap_t;
   ConfigureCallbackMap_t d_setcallbackmap;
